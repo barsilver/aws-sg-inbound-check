@@ -53,11 +53,14 @@ def main(log_mode, bucket_name, profile_name):
             # Delete the rule from the inbound rules.
             if not log_mode:
                 for rule_id in matching_rules:
-                    logging.warning('Delete rule ID for 0.0.0.0/0 inbound rule in %s: %s', sg_id, rule_id)
-                    #ec2_client.revoke_security_group_ingress(
-                        #GroupId = sg_id,
-                        #SecurityGroupRuleIds = [rule_id]
-                    #)
+                    try:
+                        ec2_client.revoke_security_group_ingress(
+                            GroupId=sg_id,
+                            SecurityGroupRuleIds=[rule_id]
+                        )
+                        logging.info('Successfully deleted rule ID %s in security group %s', rule_id, sg_id)
+                    except ClientError as e:
+                        logging.error('Error deleting rule ID %s in security group %s: %s', rule_id, sg_id, e)
 
         # Upload the log file to S3 bucket.
         try:
