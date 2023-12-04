@@ -6,19 +6,41 @@ from botocore.exceptions import ClientError
 @click.command()
 @click.option('--log-mode', is_flag=True)
 @click.option('--bucket-name', required=True, type=str, prompt=True)
-@click.option('--profile-name', type=str, prompt=True, default='default')
+@click.option('--profile-name', type=str)
+@click.option('--access-key', type=str)
+@click.option('--secret-key', type=str)
 
-def main(log_mode, bucket_name, profile_name):
-    session = boto3.session.Session(profile_name=profile_name)
 
-    ec2_client = session.client('ec2')
-    s3_client = session.client('s3')
+def main(log_mode, bucket_name, profile_name, access_key, secret_key):
 
     logging.basicConfig(
         filename='log.txt',
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
+
+    console_logger = logging.getLogger("console_logger")
+    ConsoleOutputHandler = logging.StreamHandler()
+    console_logger.addHandler(ConsoleOutputHandler)
+
+    if access_key and secret_key:
+        console_logger.info('Logging in using Access key pair...')
+        session = boto3.Session(
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key
+        )
+        ec2_client = session.client('ec2')
+        s3_client = session.client('s3')
+
+    elif profile_name:
+        console_logger.info('Logging in using AWS Profile...')
+        session = boto3.session.Session(profile_name=profile_name)
+        ec2_client = session.client('ec2')
+        s3_client = session.client('s3')
+    else:
+        console_logger.info('No key pair or profile provided. Logging in using IAM role...')
+        ec2_client = boto3.client('ec2')
+        s3_client = boto3.client('s3')
 
     vpcs = ec2_client.describe_vpcs(
         Filters=[
@@ -62,15 +84,14 @@ def main(log_mode, bucket_name, profile_name):
                     except ClientError as e:
                         logging.error('Error deleting rule ID %s in security group %s: %s', rule_id, sg_id, e)
 
-        # Upload the log file to S3 bucket.
-        try:
-            res = s3_client.upload_file('log.txt', bucket_name, 'log.txt')
-        except ClientError as e:
-            logging.error('Error uploading file to S3: %s', e)
-            return False
-        return True
+    # Upload the log file to S3 bucket.
+    try:
+        res = s3_client.upload_file('log.txt', bucket_name, 'log.txt')
+    except ClientError as e:
+        console_logger.error('Error uploading file to S3: %s', e)
+        return False
 
-    click.echo('Script finished successfully.')
+    console_logger.info('Script finished successfully.')
     return True
 
 
