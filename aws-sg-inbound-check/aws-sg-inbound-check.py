@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
  
 @click.command()
 @click.option('--log-mode', is_flag=True)
-@click.option('--bucket-name', required=True, type=str, prompt=True)
+@click.option('--bucket-name', required=True, type=str)
 @click.option('--profile-name', type=str)
 @click.option('--access-key', type=str)
 @click.option('--secret-key', type=str)
