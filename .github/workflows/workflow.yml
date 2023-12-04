@@ -25,7 +25,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag barsilver/aws-sg-inbound-check:${GITHUB_SHA} -t barsilver/aws-sg-inbound-check:latest
+      run: docker build . --context aws-sg-inbound-check --tag barsilver/aws-sg-inbound-check:${GITHUB_SHA} -t barsilver/aws-sg-inbound-check:latest
 
     - name: Push the Docker image
       run: |
