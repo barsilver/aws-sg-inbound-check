@@ -67,6 +67,9 @@ def main(log_mode, bucket_name, profile_name):
             return False
         return True
 
+    click.echo('Script finished successfully.')
+    return True
+
 
 
 if __name__ == '__main__':
