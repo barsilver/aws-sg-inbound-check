@@ -6,16 +6,20 @@ from botocore.exceptions import ClientError
 @click.command()
 @click.option('--log-mode', is_flag=True)
 @click.option('--bucket-name', required=True, type=str, prompt=True)
+@click.option('--profile-name', type=str, prompt=True, default='default')
 
-def main(log_mode, bucket_name):
-    ec2_client = boto3.client('ec2')
+def main(log_mode, bucket_name, profile_name):
+    session = boto3.session.Session(profile_name=profile_name)
+
+    ec2_client = session.client('ec2')
+    s3_client = session.client('s3')
+
     logging.basicConfig(
         filename='log.txt',
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
 
- 
     vpcs = ec2_client.describe_vpcs(
         Filters=[
             {'Name':'tag:Name', 'Values':['*']}
@@ -39,7 +43,7 @@ def main(log_mode, bucket_name):
                     {'Name': 'group-id', 'Values': [sg_id]}
                 ]
             )
-            
+        
             matching_rules = [
                 rule['SecurityGroupRuleId']
                 for rule in inbound_rules['SecurityGroupRules']
@@ -55,14 +59,13 @@ def main(log_mode, bucket_name):
                         #SecurityGroupRuleIds = [rule_id]
                     #)
 
-    # Upload the log file to S3 bucket.
-    s3_client = boto3.client('s3')
-    try:
-        res = s3_client.upload_file('log.txt', bucket_name, 'log.txt')
-    except ClientError as e:
-        logging.error(e)
-        return False
-    return True
+        # Upload the log file to S3 bucket.
+        try:
+            res = s3_client.upload_file('log.txt', bucket_name, 'log.txt')
+        except ClientError as e:
+            logging.error('Error uploading file to S3: %s', e)
+            return False
+        return True
 
 
 
