@@ -55,11 +55,18 @@ def main(log_mode, bucket_name, profile_name, access_key, secret_key):
             console_logger.error('Authentication Error: %s', e)
             return False
 
-    vpcs = ec2_client.describe_vpcs(
-        Filters=[
-            {'Name':'tag:Name', 'Values':['*']}
-        ]
-    )
+    console_logger.info('Successfully authenticated. Proceeding to describe VPCs in order to get Security Groups.')
+
+    try:
+        vpcs = ec2_client.describe_vpcs(
+            Filters=[
+                {'Name':'tag:Name', 'Values':['*']}
+            ]
+        )
+    except Exception as e:
+        console_logger.error('Error describing VPCs: %s', e)
+        return False
+
     for vpc in vpcs['Vpcs']:
         vpc_id = vpc['VpcId']
         security_groups = ec2_client.describe_security_groups(
