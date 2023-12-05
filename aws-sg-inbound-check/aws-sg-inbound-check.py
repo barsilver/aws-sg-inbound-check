@@ -13,15 +13,23 @@ from botocore.exceptions import ClientError
 
 def main(log_mode, bucket_name, profile_name, access_key, secret_key):
 
-    logging.basicConfig(
-        filename='log.txt',
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s'
-    )
+    # Configure the logger for file output
+    file_logger = logging.getLogger('file_logger')
+    file_logger.setLevel(logging.INFO)
 
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+    file_handler = logging.FileHandler('log.txt')
+    file_handler.setFormatter(formatter)
+    file_logger.addHandler(file_handler)
+
+    # Configure the logger for console output
     console_logger = logging.getLogger("console_logger")
-    ConsoleOutputHandler = logging.StreamHandler()
-    console_logger.addHandler(ConsoleOutputHandler)
+    console_logger.setLevel(logging.INFO)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    console_logger.addHandler(console_handler)
 
     if access_key and secret_key:
         console_logger.info('Logging in using Access key pair...')
@@ -78,7 +86,7 @@ def main(log_mode, bucket_name, profile_name, access_key, secret_key):
         for sg in security_groups['SecurityGroups']:
             sg_id = sg['GroupId']
             # Log the security group to the log.txt file.
-            logging.info('%s contains 0.0.0.0/0 inboud rule', sg_id)
+            file_logger.info('%s contains 0.0.0.0/0 inboud rule', sg_id)
 
             inbound_rules = ec2_client.describe_security_group_rules(
                 Filters=[
@@ -95,15 +103,14 @@ def main(log_mode, bucket_name, profile_name, access_key, secret_key):
             # Delete the rule from the inbound rules.
             if not log_mode:
                 for rule_id in matching_rules:
-                    logging.info('Successfully deleted rule ID %s in security group %s', rule_id, sg_id)
-                    # try:
-                    #     ec2_client.revoke_security_group_ingress(
-                    #         GroupId=sg_id,
-                    #         SecurityGroupRuleIds=[rule_id]
-                    #     )
-                    #     logging.info('Successfully deleted rule ID %s in security group %s', rule_id, sg_id)
-                    # except ClientError as e:
-                    #     logging.error('Error deleting rule ID %s in security group %s: %s', rule_id, sg_id, e)
+                    try:
+                        ec2_client.revoke_security_group_ingress(
+                            GroupId=sg_id,
+                            SecurityGroupRuleIds=[rule_id]
+                        )
+                        console_logger.info('Successfully deleted rule ID %s in security group %s', rule_id, sg_id)
+                    except ClientError as e:
+                        console_logger.error('Error deleting rule ID %s in security group %s: %s', rule_id, sg_id, e)
 
     # Upload the log file to S3 bucket.
     try:
