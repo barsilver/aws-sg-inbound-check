@@ -9,9 +9,10 @@ from botocore.exceptions import ClientError
 @click.option('--profile-name', type=str)
 @click.option('--access-key', type=str)
 @click.option('--secret-key', type=str)
+@click.option('--session-token', type=str, default=None)
 
 
-def main(log_mode, bucket_name, profile_name, access_key, secret_key):
+def main(log_mode, bucket_name, access_key, secret_key, session_token, profile_name):
 
     # Configure the logger for file output
     file_logger = logging.getLogger('file_logger')
@@ -24,7 +25,7 @@ def main(log_mode, bucket_name, profile_name, access_key, secret_key):
     file_logger.addHandler(file_handler)
 
     # Configure the logger for console output
-    console_logger = logging.getLogger("console_logger")
+    console_logger = logging.getLogger('console_logger')
     console_logger.setLevel(logging.INFO)
 
     console_handler = logging.StreamHandler()
@@ -36,7 +37,8 @@ def main(log_mode, bucket_name, profile_name, access_key, secret_key):
         try:
             session = boto3.Session(
                 aws_access_key_id=access_key,
-                aws_secret_access_key=secret_key
+                aws_secret_access_key=secret_key,
+                aws_session_token=session_token
             )
             ec2_client = session.client('ec2')
             s3_client = session.client('s3')
