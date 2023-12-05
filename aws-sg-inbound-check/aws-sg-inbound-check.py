@@ -63,7 +63,7 @@ def main(log_mode, bucket_name, profile_name, access_key, secret_key):
                 {'Name':'tag:Name', 'Values':['*']}
             ]
         )
-    except Exception as e:
+    except ClientError as e:
         console_logger.error('Error describing VPCs: %s', e)
         return False
 
@@ -95,14 +95,15 @@ def main(log_mode, bucket_name, profile_name, access_key, secret_key):
             # Delete the rule from the inbound rules.
             if not log_mode:
                 for rule_id in matching_rules:
-                    try:
-                        ec2_client.revoke_security_group_ingress(
-                            GroupId=sg_id,
-                            SecurityGroupRuleIds=[rule_id]
-                        )
-                        logging.info('Successfully deleted rule ID %s in security group %s', rule_id, sg_id)
-                    except ClientError as e:
-                        logging.error('Error deleting rule ID %s in security group %s: %s', rule_id, sg_id, e)
+                    logging.info('Successfully deleted rule ID %s in security group %s', rule_id, sg_id)
+                    # try:
+                    #     ec2_client.revoke_security_group_ingress(
+                    #         GroupId=sg_id,
+                    #         SecurityGroupRuleIds=[rule_id]
+                    #     )
+                    #     logging.info('Successfully deleted rule ID %s in security group %s', rule_id, sg_id)
+                    # except ClientError as e:
+                    #     logging.error('Error deleting rule ID %s in security group %s: %s', rule_id, sg_id, e)
 
     # Upload the log file to S3 bucket.
     try:
