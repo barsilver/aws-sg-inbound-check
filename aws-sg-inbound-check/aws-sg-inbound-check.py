@@ -25,22 +25,35 @@ def main(log_mode, bucket_name, profile_name, access_key, secret_key):
 
     if access_key and secret_key:
         console_logger.info('Logging in using Access key pair...')
-        session = boto3.Session(
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key
-        )
-        ec2_client = session.client('ec2')
-        s3_client = session.client('s3')
+        try:
+            session = boto3.Session(
+                aws_access_key_id=access_key,
+                aws_secret_access_key=secret_key
+            )
+            ec2_client = session.client('ec2')
+            s3_client = session.client('s3')
+        except ClientError as e:
+            console_logger.error('Authentication Error: %s', e)
+            return False
 
     elif profile_name:
-        console_logger.info('Logging in using AWS Profile...')
-        session = boto3.session.Session(profile_name=profile_name)
-        ec2_client = session.client('ec2')
-        s3_client = session.client('s3')
+        try:
+            console_logger.info('Logging in using AWS Profile...')
+            session = boto3.session.Session(profile_name=profile_name)
+            ec2_client = session.client('ec2')
+            s3_client = session.client('s3')
+        except ClientError as e:
+            console_logger.error('Authentication Error: %s', e)
+            return False
+
     else:
-        console_logger.info('No key pair or profile provided. Logging in using IAM role...')
-        ec2_client = boto3.client('ec2')
-        s3_client = boto3.client('s3')
+        try:
+            console_logger.info('No key pair or profile provided. Logging in using IAM role...')
+            ec2_client = boto3.client('ec2')
+            s3_client = boto3.client('s3')
+        except ClientError as e:
+            console_logger.error('Authentication Error: %s', e)
+            return False
 
     vpcs = ec2_client.describe_vpcs(
         Filters=[
