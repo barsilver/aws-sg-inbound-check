@@ -88,7 +88,7 @@ def main(log_mode, bucket_name, access_key, secret_key, session_token, profile_n
         for sg in security_groups['SecurityGroups']:
             sg_id = sg['GroupId']
             # Log the security group to the log.txt file.
-            file_logger.info('%s contains 0.0.0.0/0 inboud rule', sg_id)
+            file_logger.info('%s contains 0.0.0.0/0 inbound rule', sg_id)
 
             inbound_rules = ec2_client.describe_security_group_rules(
                 Filters=[
