@@ -22,7 +22,7 @@ This script should be executed with a few flags:
 If you choose to run the command without the authentication flags above (`--profile-name`, `--access-key`, `--secret-key`), the script would be using the IAM permissions configured locally (default profile, IAM Role connected to the machine, etc.).
 
 # Workflow
-The GitHub workflow build the docker image and then push it to the `barsilver/aws-sg-inbound-check` Docker Hub repo every day at 6am and each time a commit is pushed to the `master` branch.
+The GitHub workflow build the docker image, then push it to the `barsilver/aws-sg-inbound-check` Docker Hub repo every day at 6am, and each time a commit is pushed to the `master` branch.
 
 # Usage
 
