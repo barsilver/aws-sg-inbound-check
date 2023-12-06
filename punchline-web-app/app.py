@@ -6,10 +6,8 @@ app = Flask(__name__)
 api_url = "https://official-joke-api.appspot.com/random_joke"
 response = requests.get(api_url)
 content = response.json()
-if 'punchline' in content:
-    punchline = content['punchline']
-if 'id' in content:
-    joke_id = content['id']
+punchline = content['punchline']
+joke_id = content['id']
 
 @app.route("/", methods=['GET'])
 def joke():
